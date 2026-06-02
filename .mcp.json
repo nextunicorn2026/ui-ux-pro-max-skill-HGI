@@ -6,6 +6,9 @@
         "-y",
         "@magicuidesign/mcp@latest"
       ]
+    },
+    "higgsfield": {
+      "url": "https://mcp.higgsfield.ai/mcp"
     }
   }
 }
