@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HGI — Magic UI Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          animation: {
+            'retro-scroll': 'retroScroll 15s linear infinite',
+            'fade-up': 'fadeUp 0.8s ease-out forwards',
+            'beam': 'beam 3s ease-in-out infinite',
+          },
+          keyframes: {
+            retroScroll: {
+              'from': { transform: 'perspective(200px) rotateX(65deg) translateY(0)' },
+              'to':   { transform: 'perspective(200px) rotateX(65deg) translateY(-50%)' },
+            },
+            fadeUp: {
+              'from': { opacity: '0', transform: 'translateY(24px)' },
+              'to':   { opacity: '1', transform: 'translateY(0)' },
+            },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+
+    /* ── Retro Grid ──────────────────────────────────────── */
+    .retro-grid-wrap {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      opacity: 0.4;
+    }
+    .retro-grid-perspective {
+      position: absolute;
+      inset: 0;
+      perspective: 200px;
+    }
+    .retro-grid-rotate {
+      position: absolute;
+      inset: 0;
+      transform: rotateX(65deg);
+    }
+    .retro-grid-tile {
+      position: absolute;
+      top: 0; left: -200%;
+      width: 600vw;
+      height: 300vh;
+      background-image:
+        linear-gradient(to right,  rgba(99,102,241,0.35) 1px, transparent 0),
+        linear-gradient(to bottom, rgba(99,102,241,0.35) 1px, transparent 0);
+      background-size: 60px 60px;
+      animation: retroScroll 15s linear infinite;
+      transform-origin: 100% 0 0;
+    }
+    .retro-grid-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, #030712 30%, transparent);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .retro-grid-tile { animation: none; transform: translateY(-50%); }
+    }
+
+    /* ── Animated Beam ───────────────────────────────────── */
+    .beam-svg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+    @keyframes beamTravel {
+      0%   { stroke-dashoffset: 600; opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { stroke-dashoffset: 0;   opacity: 0; }
+    }
+    .beam-path-glow {
+      stroke-dasharray: 160;
+      stroke-dashoffset: 600;
+      animation: beamTravel 3s ease-in-out infinite;
+    }
+    .beam-path-glow:nth-child(1) { animation-delay: 0s; }
+    .beam-path-glow:nth-child(2) { animation-delay: 1s; }
+    .beam-path-glow:nth-child(3) { animation-delay: 2s; }
+
+    /* ── Glow button ─────────────────────────────────────── */
+    .glow-btn {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .glow-btn::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(135deg, #6366f1, #ec4899, #6366f1);
+      border-radius: inherit;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .glow-btn:hover { transform: translateY(-1px); box-shadow: 0 0 40px rgba(99,102,241,0.5); }
+    .glow-btn:hover::before { opacity: 1; }
+
+    /* ── Misc ────────────────────────────────────────────── */
+    .fade-up { opacity: 0; animation: fadeUp 0.8s ease-out forwards; }
+    .delay-1 { animation-delay: 0.15s; }
+    .delay-2 { animation-delay: 0.3s;  }
+    .delay-3 { animation-delay: 0.45s; }
+
+    .node-circle {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: #111827;
+      border: 1.5px solid rgba(99,102,241,0.5);
+      box-shadow: 0 0 12px rgba(99,102,241,0.2);
+      font-size: 20px;
+      position: relative; z-index: 10;
+    }
+    .node-circle.center {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-color: #6366f1;
+      box-shadow: 0 0 24px rgba(99,102,241,0.5);
+      font-size: 28px;
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen overflow-x-hidden">
+
+  <!-- ═══════════════════════════════════════
+       HERO — Retro Grid + headline
+  ════════════════════════════════════════ -->
+  <section class="relative min-h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+
+    <!-- Retro Grid Background -->
+    <div class="retro-grid-wrap">
+      <div class="retro-grid-perspective">
+        <div class="retro-grid-rotate">
+          <div class="retro-grid-tile"></div>
+        </div>
+      </div>
+      <div class="retro-grid-fade"></div>
+    </div>
+
+    <!-- Radial glow -->
+    <div class="absolute inset-0 pointer-events-none"
+         style="background: radial-gradient(ellipse 60% 50% at 50% 60%, rgba(99,102,241,0.15) 0%, transparent 70%)">
+    </div>
+
+    <!-- Badge -->
+    <div class="fade-up relative z-10 inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-sm mb-6">
+      <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+      Magic UI · Retro Grid + Animated Beam
+    </div>
+
+    <!-- Headline -->
+    <h1 class="fade-up delay-1 relative z-10 text-5xl sm:text-7xl font-bold tracking-tight leading-[1.1] max-w-4xl mb-6">
+      Build
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400">
+        Cinematic
+      </span>
+      Interfaces
+    </h1>
+
+    <p class="fade-up delay-2 relative z-10 text-lg text-gray-400 max-w-xl mb-10 leading-relaxed">
+      HGI-powered design intelligence. Drop in Magic UI components and ship
+      production-grade, animated UIs in minutes.
+    </p>
+
+    <!-- CTA buttons -->
+    <div class="fade-up delay-3 relative z-10 flex flex-wrap gap-4 justify-center">
+      <button class="glow-btn px-6 py-3 rounded-xl font-semibold text-white text-sm">
+        Get Started →
+      </button>
+      <button class="px-6 py-3 rounded-xl font-semibold text-gray-300 text-sm border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors">
+        View Components
+      </button>
+    </div>
+
+    <!-- Scroll hint -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-gray-600 text-xs animate-bounce">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       ANIMATED BEAM — AI orchestration visual
+  ════════════════════════════════════════ -->
+  <section class="relative py-24 px-6 flex flex-col items-center">
+    <div class="text-center max-w-2xl mb-16">
+      <p class="text-indigo-400 text-sm font-medium uppercase tracking-widest mb-3">Animated Beam</p>
+      <h2 class="text-3xl sm:text-4xl font-bold mb-4">Everything connected</h2>
+      <p class="text-gray-400">Beams visualise data flow between nodes — great for AI pipelines, integrations, and architecture diagrams.</p>
+    </div>
+
+    <!-- Beam diagram -->
+    <div id="beam-container" class="relative w-full max-w-lg h-64 flex items-center justify-center">
+
+      <!-- SVG beams (drawn via JS after layout) -->
+      <svg id="beam-svg" class="beam-svg" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+
+      <!-- Layout -->
+      <div class="relative z-10 flex w-full justify-between items-center px-4">
+        <!-- Left column -->
+        <div class="flex flex-col gap-6">
+          <div class="node-circle beam-node" id="n1">📄</div>
+          <div class="node-circle beam-node" id="n2">🗃️</div>
+          <div class="node-circle beam-node" id="n3">💬</div>
+        </div>
+
+        <!-- Centre hub -->
+        <div class="node-circle center beam-node" id="hub">✦</div>
+
+        <!-- Right column -->
+        <div class="flex flex-col gap-6">
+          <div class="node-circle beam-node" id="n4">📊</div>
+          <div class="node-circle beam-node" id="n5">🔗</div>
+          <div class="node-circle beam-node" id="n6">⚡</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="mt-6 text-xs text-gray-600">
+      Pure CSS + SVG implementation — no JS framework needed for the beam effect
+    </p>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       FEATURE GRID
+  ════════════════════════════════════════ -->
+  <section class="py-20 px-6 max-w-5xl mx-auto">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- cards -->
+      <div class="group p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-500/30 transition-all duration-300">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-xl mb-4">🎨</div>
+        <h3 class="font-semibold mb-2">Retro Grid</h3>
+        <p class="text-sm text-gray-500">WebGL-accelerated perspective grid with scrolling animation and light/dark mode support.</p>
+      </div>
+      <div class="group p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-violet-500/30 transition-all duration-300">
+        <div class="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-xl mb-4">✦</div>
+        <h3 class="font-semibold mb-2">Animated Beam</h3>
+        <p class="text-sm text-gray-500">SVG gradient beam connecting any two refs — perfect for flow diagrams and AI pipeline visuals.</p>
+      </div>
+      <div class="group p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-pink-500/30 transition-all duration-300">
+        <div class="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-xl mb-4">⚡</div>
+        <h3 class="font-semibold mb-2">Magic UI MCP</h3>
+        <p class="text-sm text-gray-500">50+ animated components available via MCP — install any component directly from Claude Code.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       INSTALL SNIPPET
+  ════════════════════════════════════════ -->
+  <section class="py-20 px-6 flex justify-center">
+    <div class="w-full max-w-xl">
+      <p class="text-center text-gray-500 text-sm mb-4">Install any component via CLI</p>
+      <div class="rounded-xl border border-white/10 bg-gray-900/80 overflow-hidden">
+        <div class="flex items-center gap-2 px-4 py-2 border-b border-white/5">
+          <div class="w-3 h-3 rounded-full bg-red-500/60"></div>
+          <div class="w-3 h-3 rounded-full bg-yellow-500/60"></div>
+          <div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+          <span class="ml-2 text-xs text-gray-600">terminal</span>
+        </div>
+        <div class="p-5 font-mono text-sm space-y-2">
+          <div><span class="text-gray-600">$</span> <span class="text-indigo-400">pnpm dlx</span> <span class="text-white">@magicuidesign/cli@latest install retro-grid</span></div>
+          <div><span class="text-gray-600">$</span> <span class="text-indigo-400">pnpm dlx</span> <span class="text-white">@magicuidesign/cli@latest install animated-beam</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Beam JS: draw SVG paths between nodes after layout paint -->
+  <script>
+    function getCenter(el, container) {
+      const er = el.getBoundingClientRect()
+      const cr = container.getBoundingClientRect()
+      return {
+        x: er.left - cr.left + er.width / 2,
+        y: er.top  - cr.top  + er.height / 2,
+      }
+    }
+
+    function buildPath(from, to, curvature = 0) {
+      const cx = (from.x + to.x) / 2
+      const cy = (from.y + to.y) / 2 - curvature
+      return `M ${from.x},${from.y} Q ${cx},${cy} ${to.x},${to.y}`
+    }
+
+    function drawBeams() {
+      const container = document.getElementById('beam-container')
+      const svg = document.getElementById('beam-svg')
+      svg.setAttribute('width',  container.clientWidth)
+      svg.setAttribute('height', container.clientHeight)
+      svg.setAttribute('viewBox', `0 0 ${container.clientWidth} ${container.clientHeight}`)
+      svg.innerHTML = ''
+
+      const hub = document.getElementById('hub')
+      const pairs = [
+        ['n1', 'hub', -30], ['n2', 'hub', 0], ['n3', 'hub', 30],
+        ['hub', 'n4', -30], ['hub', 'n5', 0], ['hub', 'n6', 30],
+      ]
+
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+
+      pairs.forEach(([fromId, toId, curv], i) => {
+        const from = getCenter(document.getElementById(fromId), container)
+        const to   = getCenter(document.getElementById(toId),   container)
+        const d    = buildPath(from, to, curv)
+        const gradId = `beam-grad-${i}`
+
+        // Gradient
+        const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient')
+        grad.setAttribute('id', gradId)
+        grad.setAttribute('gradientUnits', 'userSpaceOnUse')
+        grad.setAttribute('x1', from.x); grad.setAttribute('y1', from.y)
+        grad.setAttribute('x2', to.x);   grad.setAttribute('y2', to.y)
+        const colors = [['#6366f1','0'],['#6366f1','1'],['#a855f7','1'],['#a855f7','0']]
+        const offsets = ['0%','20%','80%','100%']
+        offsets.forEach((off, j) => {
+          const stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop')
+          stop.setAttribute('offset', off)
+          stop.setAttribute('stop-color', colors[j][0])
+          stop.setAttribute('stop-opacity', colors[j][1])
+          grad.appendChild(stop)
+        })
+        defs.appendChild(grad)
+
+        // Static track
+        const track = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+        track.setAttribute('d', d)
+        track.setAttribute('stroke', 'rgba(99,102,241,0.15)')
+        track.setAttribute('stroke-width', '1.5')
+        track.setAttribute('fill', 'none')
+        track.setAttribute('stroke-linecap', 'round')
+        svg.appendChild(track)
+
+        // Animated beam
+        const beam = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+        beam.setAttribute('d', d)
+        beam.setAttribute('stroke', `url(#${gradId})`)
+        beam.setAttribute('stroke-width', '2')
+        beam.setAttribute('fill', 'none')
+        beam.setAttribute('stroke-linecap', 'round')
+        beam.setAttribute('stroke-dasharray', '80')
+        beam.setAttribute('stroke-dashoffset', '400')
+        beam.setAttribute('class', 'beam-path-glow')
+        beam.style.animationDelay = `${i * 0.4}s`
+        svg.appendChild(beam)
+      })
+
+      svg.insertBefore(defs, svg.firstChild)
+    }
+
+    window.addEventListener('load', drawBeams)
+    window.addEventListener('resize', drawBeams)
+  </script>
+</body>
+</html>
